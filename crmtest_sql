@@ -1,0 +1,243 @@
+CREATE DATABASE loreal;
+
+CREATE TABLE raw_data
+(customer_id varchar(50),
+brand varchar(50),
+sign_up_date date,
+first_date date, 
+second_date date,
+first_category varchar(50), 
+second_category varchar(50),
+customer_type varchar(50),
+items int,
+sales decimal,
+orders int
+)
+
+\COPY raw_data FROM '/Users/miguelgris/Downloads/raw_data.csv' delimiter ',' CSV HEADER;
+
+SELECT SUM(sales) FROM raw_data;
+     sum     
+-------------
+ 10578689.10
+
+SELECT first_category, COUNT(first_category) FROM raw_data GROUP BY first_category;
+ first_category | count 
+----------------+-------
+ null           |     0     15%   
+ Makeup         | 16287     45%
+ Skincare       | 11823     33%
+ Fragrance      |  2193     6%
+ Hair           |   533     1%
+
+SELECT second_category, COUNT(second_category) FROM raw_data GROUP BY second_category;
+ second_category | count 
+-----------------+-------
+ Skincare        |  7904    22%
+null             |     0    51.91%
+ Makeup          |  8720    24%
+ Fragrance       |   726    2%
+ Hair            |   350    .09%
+
+SELECT age(MIN(second_date)) FROM raw_data;
+         age          
+----------------------
+ 1 year 1 mon 13 days
+
+ SELECT age(MIN(sign_up_date)) FROM raw_data;
+
+            age            
+--------------------------
+ 20 years 11 mons 12 days
+
+SELECT age(MAX(sign_up_date)) FROM raw_data;
+
+ SELECT date_part('day', now() - MAX(second_date)) as days FROM raw_data;
+ days 
+------
+  409
+
+
+WITH order_info as (
+SELECT *,
+	date_part('year',first_date) as first_year,
+	to_char(first_date, 'Day') as first_day,
+	r.customer_id as r_customer_id
+FROM raw_data as r
+)
+SELECT 
+	COUNT(DISTINCT r_customer_id) as qty_orders,
+	first_day
+FROM order_info
+WHERE first_year IN (SELECT DISTINCT first_year FROM order_info ORDER BY first_year DESC LIMIT 1)
+GROUP BY first_day
+ORDER BY qty_orders;
+
+qty_orders | first_day 
+------------+-----------
+        715 | Saturday 
+       1425 | Sunday   
+       1619 | Friday   
+       1746 | Thursday 
+       1802 | Wednesday
+       1966 | Tuesday  
+       2727 | Monday 
+
+WITH date_subtotals as (
+SELECT sales,
+	Date(date_trunc('month', first_date)),
+	customer_id
+FROM raw_data
+)
+SELECT 
+	date::VARCHAR(7) as date_txt_yyyymm,
+	ROUND(SUM(sales)::numeric,2) as sales,
+	COUNT(DISTINCT customer_id) as monthly_orders
+FROM date_subtotals
+GROUP BY date
+ORDER BY date;
+
+date_txt_yyyymm |   sales    | monthly_orders 
+-----------------+------------+----------------
+ 2017-01         |  740310.17 |           2404
+ 2017-02         |  518553.23 |           1583
+ 2017-03         |  571982.82 |           1769
+ 2017-04         |  466157.50 |           1508
+ 2017-05         |  685771.42 |           2282
+ 2017-06         |  395864.83 |           1343
+ 2017-07         |  334441.73 |           1273
+ 2017-08         |  592489.65 |           1967
+ 2017-09         |  556165.26 |           2042
+ 2017-10         |  489702.32 |           1550
+ 2017-11         | 1051894.70 |           3829
+ 2017-12         |  555857.09 |           1998
+ 2018-01         |  368610.30 |           1185
+ 2018-02         |  266504.30 |            975
+ 2018-03         |  367678.85 |           1064
+ 2018-04         |  366029.20 |           1335
+ 2018-05         |  429899.03 |           1348
+ 2018-06         |  279176.27 |            929
+ 2018-07         |  194949.17 |            605
+ 2018-08         |  229618.02 |            750
+ 2018-09         |  273212.68 |            771
+ 2018-10         |  163519.67 |            668
+ 2018-11         |  460109.57 |           1650
+ 2018-12         |  220191.32 |            720
+
+WITH date_subtotals as (
+SELECT sales as sales,
+	Date(date_trunc('month', first_date)),
+	customer_id
+FROM raw_data
+),
+monthly_totals as (
+SELECT 
+	EXTRACT(month from date) as month,
+	ROUND(SUM(sales)::numeric,2) as sales,
+	COUNT(DISTINCT customer_id) as monthly_orders
+FROM date_subtotals
+GROUP BY date
+ORDER BY date)
+
+SELECT to_char(to_timestamp (month::text, 'MM'), 'Mon') as month,
+	ROUND(AVG(sales)::numeric, 2) as monthly_sales
+FROM monthly_totals
+GROUP BY month
+ORDER BY AVG(sales) DESC;
+
+ month | monthly_sales 
+-------+---------------
+ Nov   |     756002.14
+ May   |     557835.23
+ Jan   |     554460.24
+ Mar   |     469830.84
+ Apr   |     416093.35
+ Sep   |     414688.97
+ Aug   |     411053.84
+ Feb   |     392528.77
+ Dec   |     388024.21
+ Jun   |     337520.55
+ Oct   |     326611.00
+ Jul   |     264695.45
+
+ SELECT first_category, ROUND(SUM(sales)) FROM raw_data GROUP BY first_category;
+  first_category |  round  
+----------------+---------
+                | 1411160
+ Makeup         | 4725793
+ Skincare       | 3626950
+ Fragrance      | 663940
+ Hair           | 150847
+
+SELECT second_category, SUM(sales) FROM raw_data GROUP BY second_category;
+
+ second_category |    sum     
+-----------------+------------
+ Skincare        | 2434400.84
+                 | 5445479.93
+ Makeup          | 2405599.19
+ Fragrance       |  198845.25
+ Hair            |   94363.89
+
+
+SELECT customer_type, COUNT(customer_type)
+FROM raw_data
+GROUP BY customer_type;
+       customer_type       | count 
+---------------------------+-------
+ Promo Only Customers      | 15073
+ Non-Promo Customers       | 10133
+ Partially Promo Customers | 10381
+
+ SELECT ROUND(AVG(items)) FROM raw_data;
+  round 
+-------
+     8
+
+SELECT ROUND(AVG(sales)) FROM raw_data;
+
+ round 
+-------
+   297
+
+SELECT ROUND(AVG(orders)) FROM raw_data;
+round 
+-------
+     4
+
+SELECT brand, sum(sales) FROM raw_data GROUP BY brand;
+
+CREATE VIEW user_profits as
+SELECT customer_id, 
+brand, 
+customer_type, 
+sales,
+CASE WHEN (sales >= 2000) THEN 'High Profit'
+    WHEN (sales < 2000) AND (sales > 297) THEN 'Profitable'
+    WHEN (sales <= 297) THEN 'Low Profit'
+END 
+AS customer_profitability
+FROM raw_data
+GROUP BY customer_id, brand, customer_type, sales;
+
+SELECT customer_profitability, COUNT(customer_profitability) FROM user_profits GROUP BY customer_profitability;
+ customer_profitability | count 
+------------------------+-------
+ Profitable             |  8462
+ High Profit            |   383
+ Low Profit             | 26742
+
+\COPY (SELECT * FROM user_profits) to 'user_profits2.csv' CSV HEADER;
+
+CREATE VIEW user_profits as
+SELECT customer_id, 
+brand, 
+customer_type, 
+sales,
+CASE WHEN (sales >= 1000) THEN 'High Profit'
+    WHEN (sales < 1000) AND (sales > 297) THEN 'Profitable'
+    WHEN (sales <= 297) THEN 'Low Profit'
+END 
+AS customer_profitability
+FROM raw_data
+GROUP BY customer_id, brand, customer_type, sales;
