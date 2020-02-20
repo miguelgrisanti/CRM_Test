@@ -2,13 +2,15 @@ L'OREAL Luxe: 2017 - 2018 Customer Data Capture
 The dataset provided contains information of 35K customer orders. With a highly dynamic sales flow,
 the brands contained in the orders are part of L'OREAL Luxe portfolio, their sales:
 
-- Giorgio Armani Beauty: $1.5 Million
-- Yves Saint Laurent Beauté: $1.6 Million
-- Lancôme: $2.1 Million
-- Kiehl's: $2.7 Million
+- Giorgio Armani Beauty: $1,5 Million
+- Yves Saint Laurent Beauté: $1,6 Million
+- Lancôme: $2,1 Million
+- Kiehl's: $2,7 Million
 - IT Cosmetics: $3 Million
 
-The total sales: $10.9 Million
+Total sales: $10,9 Million 
+Items sold: 296,112
+Orders: 130,782
 
 Customer's have signed up to this database most recently over 1 year ago and since almost 21 years ago.
 However, the period of time in the dates available are of 2 orders are within 2017 and 2018, in between these 2 dates the average number of days since prior order is 111.
@@ -36,6 +38,6 @@ Findings:
 - Hair and Fragrance performed poorly at most bringing in no more than 7% sales in items
 
 Recommendations:
-- Start a sales campaign to extend lower value and sample product lines by brand, with high focus on lagging categories and o-plus-o strategy.
+- Start a sales campaign to extend lower value and sample product lines by brand, with high focus on lagging categories and o-plus-o strategy
 - Stop development distribution of hair products for lines that are not specialized on this category
 - Continue extending couture brand portfolio to fill sales gap
